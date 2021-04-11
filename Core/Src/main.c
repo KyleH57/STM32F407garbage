@@ -77,6 +77,9 @@ static void MX_USART3_UART_Init(void);
   */
 int main(void)
 {
+
+HAL_StatusTypeDef hStatus;
+
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -111,8 +114,8 @@ int main(void)
 
 
 
-   uint8_t txBuf[4] = {'F','S','A','E'};
-   uint8_t rxBuf[8];
+   uint8_t txBuf[8] = {'A','2','3','4','5','6','7','\n'};
+   uint8_t rxBuf[8] = {'N','o','D','a','t','a','?','\n'};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -128,18 +131,23 @@ int main(void)
 	  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, pin_state);
 	  // synchronous delay for 500 ms
 	  HAL_Delay(1000);
-	  CDC_Transmit_FS(txBuf,4);
 
 
-	  HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 1);
+
+	  //HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 1);
 	  HAL_Delay(3);
+
 	  //blocking transmit
-	  HAL_UART_Transmit(&huart3, txBuf, 4, 10);
-	  HAL_Delay(3);
-	  HAL_UART_Receive(&huart3, rxBuf, 8, 10);
+	  HAL_UART_Transmit(&huart3, txBuf, 8, 10);
+	  //HAL_Delay(3);
 
 	  HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 0);
 
+	  hStatus = HAL_UART_Receive(&huart3, rxBuf, 8, 1000);
+
+	  //HAL_UART_Receive(&huart3, rxBuf, 8, 10);
+
+	  CDC_Transmit_FS(rxBuf,8);
 
   }
   /* USER CODE END 3 */
@@ -373,26 +381,30 @@ static void MX_USART3_UART_Init(void)
 
   /* USER CODE BEGIN USART3_Init 0 */
 
-  /* USER CODE END USART3_Init 0 */
+  /* USER CODE END   USART3_Init 0 */
+
 
   /* USER CODE BEGIN USART3_Init 1 */
 
-  /* USER CODE END USART3_Init 1 */
+  /* USER CODE END   USART3_Init 1 */
+
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.BaudRate     = 9600;
+  huart3.Init.WordLength   = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits     = UART_STOPBITS_1;
+  huart3.Init.Parity       = UART_PARITY_NONE;
+  huart3.Init.Mode         = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl    = UART_HWCONTROL_NONE;
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+
   if (HAL_UART_Init(&huart3) != HAL_OK)
   {
     Error_Handler();
   }
+
   /* USER CODE BEGIN USART3_Init 2 */
 
-  /* USER CODE END USART3_Init 2 */
+  /* USER CODE END   USART3_Init 2 */
 
 }
 
