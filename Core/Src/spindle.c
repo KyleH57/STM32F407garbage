@@ -16,8 +16,9 @@ uint8_t check[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 void sendData8(UART_HandleTypeDef *huart) {
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 1);
+	HAL_Delay(5);
 	//blocking transmit 10ms timeout
-	HAL_UART_Transmit(&huart3, wrMsg, 8, 10);
+	HAL_UART_Transmit(huart, wrMsg, 8, 10);
 
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 0);
 
@@ -41,20 +42,8 @@ void appendCRC8() {
 }
 
 void checkEcho8(UART_HandleTypeDef *huart) {
-//  Serial.print("ESP32: BEGINING ECHO CHECK - ");
-//  Serial1.readBytes(check, 8);
-//  for (int i = 0; i < 8; i++)
-//  {
-//    Serial.print(check[i], HEX);
-//    Serial.print(" ");
-//    // if (check[i] != wrMsg[i])
-//    // {
-//    //   Serial.println("-ESP32: ECHO CHECK FAILED");
-//    //   //cmdError = true;
-//    //   return;
-//    // }
-//  }
-//  Serial.println("-ESP32: ECHO CHECK COMPLETE");
+	HAL_UART_Receive(huart, check, 8, 50);
+
 }
 //TODO
 int readCurrent10X(UART_HandleTypeDef *huart) {
@@ -78,48 +67,61 @@ int readCurrent10X(UART_HandleTypeDef *huart) {
 }
 
 void spindleFWD(UART_HandleTypeDef *huart) {
+
 	wrMsg[0] = 0x01;
 	wrMsg[1] = 0x03;
-
 	wrMsg[2] = 0x10;
 	wrMsg[3] = 0x01;
 	wrMsg[4] = 0x00;
 	wrMsg[5] = 0x01;
 
-	appendCRC8(wrMsg);
+	//overwritten by append CRC
+	wrMsg[6] = 0x00;
+	wrMsg[7] = 0x00;
 
-	sendData8(wrMsg);
-	Serial.println("ESP32: SENT M3\n");
-	checkEcho8();
+	appendCRC8();
+
+	sendData8(huart);
+	//checkEcho8();
 }
 
 void spindleOff(UART_HandleTypeDef *huart) {
-//  wrMsg[2] = 0x10;
-//  wrMsg[3] = 0x01;
-//  wrMsg[4] = 0x00;
-//  wrMsg[5] = 0x03;
-//
-//  appendCRC8(wrMsg);
-//
-//  sendData8(wrMsg);
-//
-//  Serial.println("ESP32: SENT M5\n");
-//  checkEcho8();
+
+	wrMsg[0] = 0x01;
+	wrMsg[1] = 0x03;
+	wrMsg[2] = 0x10;
+	wrMsg[3] = 0x01;
+	wrMsg[4] = 0x00;
+	wrMsg[5] = 0x03;
+
+	//overwritten by append CRC
+	wrMsg[6] = 0x00;
+	wrMsg[7] = 0x00;
+
+	appendCRC8();
+
+	sendData8(huart);
+
+	//checkEcho8();
 }
 
 void setFreq(uint16_t freq, UART_HandleTypeDef *huart) {
-//  wrMsg[2] = 0x10;
-//  wrMsg[3] = 0x02;
-//
-//  wrMsg[4] = (uint8_t)(freq >> 8);
-//  wrMsg[5] = (uint8_t)(freq & 0xFF);
-//
-//  appendCRC8(wrMsg);
-//
-//  sendData8(wrMsg);
-//
-//  Serial.println("ESP32: SENT S\n");
-//  checkEcho8();
+	wrMsg[0] = 0x01;
+	wrMsg[1] = 0x03;
+	wrMsg[2] = 0x10;
+	wrMsg[3] = 0x02;
+	wrMsg[4] = (uint8_t) (freq >> 8);
+	wrMsg[5] = (uint8_t) (freq & 0xFF);
+
+	//overwritten by append CRC
+	wrMsg[6] = 0x00;
+	wrMsg[7] = 0x00;
+
+	appendCRC8();
+
+	sendData8(huart);
+
+	//checkEcho8();
 }
 
 unsigned int crc_chk_value(uint8_t *data_value, uint8_t length) {

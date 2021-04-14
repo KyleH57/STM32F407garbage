@@ -106,7 +106,7 @@ extern USBD_CDC_ItfTypeDef USBD_Interface_fops_FS;
   * @brief Public functions declaration.
   * @{
   */
-
+ int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len);
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
 /* USER CODE BEGIN EXPORTED_FUNCTIONS */
