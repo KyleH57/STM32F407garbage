@@ -122,7 +122,7 @@ int main(void) {
 
 	uint8_t CDCrx[8] = { '0', '0', '0', '0', '0', '0', '0', '\n' };
 
-	char *CDCrxPtr1 = &CDCrx[1];
+	char *CDCrxPtr1 = &CDCrx[2];
 
 	uint32_t x = -99;
 	uint16_t length, length2;
@@ -180,18 +180,18 @@ int main(void) {
 
 		CDC_Receive_FS(CDCrx, &x);
 
-		HAL_Delay(1000);
-
+		HAL_Delay(100);
+		//spindleFWD(&huart3);
 		if (CDCrx[0] == 'M') {
-//			if (CDCrx[1] == '3') {
-//				//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-//				spindleFWD(&huart3);
-//				CDC_Transmit_FS(onStat, 3);
-//			} else if (CDCrx[1] == '5') {
-//				//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-//				spindleOff(&huart3);
-//				CDC_Transmit_FS(offStat, 3);
-//			}
+			if (CDCrx[1] == '3') {
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+				spindleFWD(&huart3);
+				CDC_Transmit_FS(onStat, 3);
+			} else if (CDCrx[1] == '5') {
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+				spindleOff(&huart3);
+				CDC_Transmit_FS(offStat, 3);
+			}
 
 		}
 		else if (CDCrx[0] == 'S') {
@@ -205,24 +205,23 @@ int main(void) {
 //					break;
 //				}
 //			}
-			//CDCrx[6] = NULL;
+			CDCrx[7] = NULL;
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1)/3;
 			setFreq(rpm, &huart3);
-			CDC_Transmit_FS(CDCrx, 8);
 		} else {
 
 		}
 
 		CDCrx[0] = 'a';
 
-		if(rpm > 1000)
+		if(rpm == 0)
 		{
-			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+			//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 		}
 		else
 		{
-			HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+			//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 		}
 
 	}

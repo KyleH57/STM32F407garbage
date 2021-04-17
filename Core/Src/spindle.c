@@ -19,7 +19,7 @@ void sendData8(UART_HandleTypeDef *huart) {
 	HAL_Delay(5);
 	//blocking transmit 10ms timeout
 	HAL_UART_Transmit(huart, wrMsg, 8, 10);
-
+	HAL_Delay(5);
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 0);
 
 }
@@ -69,7 +69,7 @@ int readCurrent10X(UART_HandleTypeDef *huart) {
 void spindleFWD(UART_HandleTypeDef *huart) {
 
 	wrMsg[0] = 0x01;
-	wrMsg[1] = 0x03;
+	wrMsg[1] = 0x06;
 	wrMsg[2] = 0x10;
 	wrMsg[3] = 0x01;
 	wrMsg[4] = 0x00;
@@ -88,7 +88,7 @@ void spindleFWD(UART_HandleTypeDef *huart) {
 void spindleOff(UART_HandleTypeDef *huart) {
 
 	wrMsg[0] = 0x01;
-	wrMsg[1] = 0x03;
+	wrMsg[1] = 0x06;
 	wrMsg[2] = 0x10;
 	wrMsg[3] = 0x01;
 	wrMsg[4] = 0x00;
@@ -107,7 +107,7 @@ void spindleOff(UART_HandleTypeDef *huart) {
 
 void setFreq(uint16_t freq, UART_HandleTypeDef *huart) {
 	wrMsg[0] = 0x01;
-	wrMsg[1] = 0x03;
+	wrMsg[1] = 0x06;
 	wrMsg[2] = 0x10;
 	wrMsg[3] = 0x02;
 	wrMsg[4] = (uint8_t) (freq >> 8);
