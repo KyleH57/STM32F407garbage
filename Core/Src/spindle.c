@@ -12,7 +12,7 @@
 
 uint8_t wrMsg[] = { 0x01, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 };
 
-uint8_t check[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+uint8_t check[] = { 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A'};//12 bytes
 
 void sendData8(UART_HandleTypeDef *huart) {
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 1);
@@ -41,9 +41,16 @@ void appendCRC8() {
 	wrMsg[7] = *crcValPtr;
 }
 
-void checkEcho8(UART_HandleTypeDef *huart) {
+//TODO
+//Check to see if we need to receive 10 bytes or not
+int checkEcho8(UART_HandleTypeDef *huart) {
 	HAL_UART_Receive(huart, check, 8, 50);
-
+	for (int i = 0; i < 8; i++) {
+		if (wrMsg[i] != check[i]) {
+			return 0;
+		}
+	}
+	return 1;
 }
 //TODO
 int readCurrent10X(UART_HandleTypeDef *huart) {
@@ -66,7 +73,7 @@ int readCurrent10X(UART_HandleTypeDef *huart) {
 //  return curData;
 }
 
-void spindleFWD(UART_HandleTypeDef *huart) {
+int spindleFWD(UART_HandleTypeDef *huart) {
 
 	wrMsg[0] = 0x01;
 	wrMsg[1] = 0x06;
@@ -82,10 +89,13 @@ void spindleFWD(UART_HandleTypeDef *huart) {
 	appendCRC8();
 
 	sendData8(huart);
-	//checkEcho8();
+
+
+
+	return checkEcho8(huart);
 }
 
-void spindleOff(UART_HandleTypeDef *huart) {
+int spindleOff(UART_HandleTypeDef *huart) {
 
 	wrMsg[0] = 0x01;
 	wrMsg[1] = 0x06;
@@ -102,7 +112,7 @@ void spindleOff(UART_HandleTypeDef *huart) {
 
 	sendData8(huart);
 
-	//checkEcho8();
+	return checkEcho8(huart);
 }
 
 void setFreq(uint16_t freq, UART_HandleTypeDef *huart) {
@@ -138,3 +148,14 @@ unsigned int crc_chk_value(uint8_t *data_value, uint8_t length) {
 	}
 	return (crc_value);
 }
+
+uint8_t* getCheck()
+{
+	return check;
+}
+
+uint8_t* getWr()
+{
+	return wrMsg;
+}
+

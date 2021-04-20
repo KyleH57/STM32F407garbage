@@ -17,17 +17,20 @@ void clearSer();
 
 void appendCRC8();
 
-void checkEcho8();
+int checkEcho8();
 //TODO
 int readCurrent10X();
 
-void spindleFWD();
+int spindleFWD();
 
-void spindleOff();
+int spindleOff();
+
+
 void setFreq(uint16_t freq, UART_HandleTypeDef *huart);
 
 
 unsigned int crc_chk_value(uint8_t *data_value, uint8_t length);
 
-
+uint8_t* getCheck();
+uint8_t* getWr();
 #endif /* INC_SPINDLE_H_ */

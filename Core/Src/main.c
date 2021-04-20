@@ -78,7 +78,6 @@ static void MX_USART3_UART_Init(void);
  */
 int main(void) {
 
-	HAL_StatusTypeDef hStatus;
 
 	/* USER CODE BEGIN 1 */
 
@@ -110,7 +109,6 @@ int main(void) {
 	MX_USB_DEVICE_Init();
 	/* USER CODE BEGIN 2 */
 
-	uint8_t tempBuf[32];
 
 	const uint8_t spStat[3] = {'S', 'P','\n'};
 	const uint8_t onStat[3] = {'M', '3','\n'};
@@ -119,45 +117,13 @@ int main(void) {
 	//uint8_t txBuf[8] = { 'A', '2', '3', '4', '5', '6', '7', '\n' };
 	uint8_t rxBuf[16]; // = { '0', '0', '0', '0', '0', '0', '0', '\n', '\0' };
 
-
+	uint8_t CDCtx[8] = { 'A', '2', '3', '4', '5', '6', '7', '\n' };
 	uint8_t CDCrx[8] = { '0', '0', '0', '0', '0', '0', '0', '\n' };
 
 	char *CDCrxPtr1 = &CDCrx[2];
 
 	uint32_t x = -99;
-	uint16_t length, length2;
-
-    char *tempPtr = &x;
-
 	int rpm = 0;
-    int j = 00;
-
-    tempPtr = rxBuf;
-    strcpy(rxBuf, "1234ABCD");
-
-//	while (j > 0) {
-//
-////	    sprintf(tempBuf, "L[%d] = %d", j, x);
-//	    sprintf(tempBuf, "L%d-", j);
-//		length = strlen(tempBuf);
-//
-//		CDC_Transmit_FS(tempBuf, length);
-//		HAL_Delay(400);
-//
-//		length2 = strlen(rxBuf);
-//		CDC_Transmit_FS(rxBuf, length2);
-//		HAL_Delay(400);
-//
-//	    sprintf(tempBuf, "-R%d=%d", j, length2);
-//
-//	    length = strlen(tempBuf);
-//		CDC_Transmit_FS(tempBuf, length);
-//
-//
-//		j--;
-//		HAL_Delay(400);
-//	}
-
 
 
 	/* USER CODE END 2 */
@@ -170,41 +136,28 @@ int main(void) {
 		/* USER CODE BEGIN 3 */
 
 
-
-		//HAL_Delay(3);
-
-		//hStatus = HAL_UART_Receive(&huart3, rxBuf, 8, 10);
-
-		//HAL_UART_Receive(&huart3, rxBuf, 8, 10);
-
-
 		CDC_Receive_FS(CDCrx, &x);
 
 		HAL_Delay(100);
 		//spindleFWD(&huart3);
 		if (CDCrx[0] == 'M') {
 			if (CDCrx[1] == '3') {
-				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-				spindleFWD(&huart3);
-				CDC_Transmit_FS(onStat, 3);
+				if (spindleFWD(&huart3)) {
+					HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+				}
+				HAL_Delay(10);
+				CDC_Transmit_FS(getCheck(), 8);
 			} else if (CDCrx[1] == '5') {
 				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 				spindleOff(&huart3);
-				CDC_Transmit_FS(offStat, 3);
+				HAL_Delay(10);
+				CDC_Transmit_FS(getCheck(), 8);
+				//CDC_Transmit_FS(offStat, 3);
 			}
 
 		}
 		else if (CDCrx[0] == 'S') {
 			HAL_Delay(100);
-//			for (int i = 0; i < 6; i++) {
-//				if (CDCrx[i] == 10) {
-//
-//					//set newline to null so we can use stoi
-//
-//					HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-//					break;
-//				}
-//			}
 			CDCrx[7] = NULL;
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1)/3;
