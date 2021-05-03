@@ -12,7 +12,6 @@
 
 void sendData8(UART_HandleTypeDef *huart);
 
-
 void clearSer();
 
 void appendCRC8();
@@ -25,9 +24,7 @@ int spindleFWD();
 
 int spindleOff();
 
-
 void setFreq(uint16_t freq, UART_HandleTypeDef *huart);
-
 
 unsigned int crc_chk_value(uint8_t *data_value, uint8_t length);
 

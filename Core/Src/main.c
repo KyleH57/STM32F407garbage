@@ -76,8 +76,8 @@ static void MX_USART3_UART_Init(void);
  * @brief  The application entry point.
  * @retval int
  */
-int main(void) {
-
+int main(void)
+{
 
 	/* USER CODE BEGIN 1 */
 
@@ -109,45 +109,61 @@ int main(void) {
 	MX_USB_DEVICE_Init();
 	/* USER CODE BEGIN 2 */
 
+	const uint8_t spStat[3] =
+	{ 'S', 'P', '\n' };
+	const uint8_t onStat[3] =
+	{ 'M', '3', '\n' };
+	const uint8_t offStat[3] =
+	{ 'M', '5', '\n' };
 
-	const uint8_t spStat[3] = {'S', 'P','\n'};
-	const uint8_t onStat[3] = {'M', '3','\n'};
-	const uint8_t offStat[3] = {'M', '5','\n'};
+	char initTx[] = "11111111111111111111";//twenty 1s
+	uint8_t* initTxPtr = &initTx;
 
-	//uint8_t txBuf[8] = { 'A', '2', '3', '4', '5', '6', '7', '\n' };
-	uint8_t rxBuf[16]; // = { '0', '0', '0', '0', '0', '0', '0', '\n', '\0' };
+	uint8_t CDCtx[8] =
+	{ 'A', '2', '3', '4', '5', '6', '7', '\n' };
+	uint8_t CDCrx[100];
 
-	uint8_t CDCtx[8] = { 'A', '2', '3', '4', '5', '6', '7', '\n' };
-	uint8_t CDCrx[8] = { '0', '0', '0', '0', '0', '0', '0', '\n' };
+	CDCrx[0] == 'a';
 
 	char *CDCrxPtr1 = &CDCrx[2];
 
 	uint32_t x = -99;
 	int rpm = 0;
 
+	while(CDCrx[0] != 'i')
+	{
+		CDC_Receive_FS(CDCrx, &x);
+		HAL_Delay(10);
+	}
+	CDC_Transmit_FS(initTxPtr, 18);
+	//init successful
 
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-	while (1) {
+	while (1)
+	{
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
 
-
 		CDC_Receive_FS(CDCrx, &x);
 
 		HAL_Delay(100);
-		//spindleFWD(&huart3);
-		if (CDCrx[0] == 'M') {
-			if (CDCrx[1] == '3') {
-				if (spindleFWD(&huart3)) {
+		if (CDCrx[0] == 'M')
+		{
+			if (CDCrx[1] == '3')
+			{
+				if (spindleFWD(&huart3))
+				{
 					HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 				}
 				HAL_Delay(10);
 				CDC_Transmit_FS(getCheck(), 8);
-			} else if (CDCrx[1] == '5') {
+			}
+			else if (CDCrx[1] == '5')
+			{
 				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 				spindleOff(&huart3);
 				HAL_Delay(10);
@@ -156,26 +172,25 @@ int main(void) {
 			}
 
 		}
-		else if (CDCrx[0] == 'S') {
+		else if (CDCrx[0] == 'S')
+		{
 			HAL_Delay(100);
 			CDCrx[7] = NULL;
 			//rounddown ok
-			rpm = atoi(CDCrxPtr1)/3;
+			rpm = atoi(CDCrxPtr1) / 3;
 			setFreq(rpm, &huart3);
-		} else {
+		}
+		else if (CDCrx[0] == 'C')
+		{
+			int spindleCurrent = readCurrent10X(&huart3);
+
+		}
+		else
+		{
 
 		}
 
 		CDCrx[0] = 'a';
-
-		if(rpm == 0)
-		{
-			//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		}
-		else
-		{
-			//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		}
 
 	}
 	/* USER CODE END 3 */
@@ -185,9 +200,12 @@ int main(void) {
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void) {
-	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+void SystemClock_Config(void)
+{
+	RCC_OscInitTypeDef RCC_OscInitStruct =
+	{ 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct =
+	{ 0 };
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -204,7 +222,8 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLN = 168;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
 	RCC_OscInitStruct.PLL.PLLQ = 7;
-	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/** Initializes the CPU, AHB and APB buses clocks
@@ -216,7 +235,8 @@ void SystemClock_Config(void) {
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
+	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+	{
 		Error_Handler();
 	}
 }
@@ -226,13 +246,15 @@ void SystemClock_Config(void) {
  * @param None
  * @retval None
  */
-static void MX_ADC2_Init(void) {
+static void MX_ADC2_Init(void)
+{
 
 	/* USER CODE BEGIN ADC2_Init 0 */
 
 	/* USER CODE END ADC2_Init 0 */
 
-	ADC_ChannelConfTypeDef sConfig = { 0 };
+	ADC_ChannelConfTypeDef sConfig =
+	{ 0 };
 
 	/* USER CODE BEGIN ADC2_Init 1 */
 
@@ -251,7 +273,8 @@ static void MX_ADC2_Init(void) {
 	hadc2.Init.NbrOfConversion = 1;
 	hadc2.Init.DMAContinuousRequests = DISABLE;
 	hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-	if (HAL_ADC_Init(&hadc2) != HAL_OK) {
+	if (HAL_ADC_Init(&hadc2) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
@@ -259,7 +282,8 @@ static void MX_ADC2_Init(void) {
 	sConfig.Channel = ADC_CHANNEL_1;
 	sConfig.Rank = 1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-	if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK) {
+	if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN ADC2_Init 2 */
@@ -273,13 +297,15 @@ static void MX_ADC2_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_ADC3_Init(void) {
+static void MX_ADC3_Init(void)
+{
 
 	/* USER CODE BEGIN ADC3_Init 0 */
 
 	/* USER CODE END ADC3_Init 0 */
 
-	ADC_ChannelConfTypeDef sConfig = { 0 };
+	ADC_ChannelConfTypeDef sConfig =
+	{ 0 };
 
 	/* USER CODE BEGIN ADC3_Init 1 */
 
@@ -298,7 +324,8 @@ static void MX_ADC3_Init(void) {
 	hadc3.Init.NbrOfConversion = 1;
 	hadc3.Init.DMAContinuousRequests = DISABLE;
 	hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-	if (HAL_ADC_Init(&hadc3) != HAL_OK) {
+	if (HAL_ADC_Init(&hadc3) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
@@ -306,7 +333,8 @@ static void MX_ADC3_Init(void) {
 	sConfig.Channel = ADC_CHANNEL_3;
 	sConfig.Rank = 1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-	if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK) {
+	if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN ADC3_Init 2 */
@@ -320,7 +348,8 @@ static void MX_ADC3_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_CAN2_Init(void) {
+static void MX_CAN2_Init(void)
+{
 
 	/* USER CODE BEGIN CAN2_Init 0 */
 
@@ -341,7 +370,8 @@ static void MX_CAN2_Init(void) {
 	hcan2.Init.AutoRetransmission = DISABLE;
 	hcan2.Init.ReceiveFifoLocked = DISABLE;
 	hcan2.Init.TransmitFifoPriority = DISABLE;
-	if (HAL_CAN_Init(&hcan2) != HAL_OK) {
+	if (HAL_CAN_Init(&hcan2) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN CAN2_Init 2 */
@@ -355,7 +385,8 @@ static void MX_CAN2_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_SPI1_Init(void) {
+static void MX_SPI1_Init(void)
+{
 
 	/* USER CODE BEGIN SPI1_Init 0 */
 
@@ -377,7 +408,8 @@ static void MX_SPI1_Init(void) {
 	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
 	hspi1.Init.CRCPolynomial = 10;
-	if (HAL_SPI_Init(&hspi1) != HAL_OK) {
+	if (HAL_SPI_Init(&hspi1) != HAL_OK)
+	{
 		Error_Handler();
 	}
 	/* USER CODE BEGIN SPI1_Init 2 */
@@ -391,7 +423,8 @@ static void MX_SPI1_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_USART3_UART_Init(void) {
+static void MX_USART3_UART_Init(void)
+{
 
 	/* USER CODE BEGIN USART3_Init 0 */
 
@@ -410,7 +443,8 @@ static void MX_USART3_UART_Init(void) {
 	huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	huart3.Init.OverSampling = UART_OVERSAMPLING_16;
 
-	if (HAL_UART_Init(&huart3) != HAL_OK) {
+	if (HAL_UART_Init(&huart3) != HAL_OK)
+	{
 		Error_Handler();
 	}
 
@@ -425,8 +459,10 @@ static void MX_USART3_UART_Init(void) {
  * @param None
  * @retval None
  */
-static void MX_GPIO_Init(void) {
-	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
+static void MX_GPIO_Init(void)
+{
+	GPIO_InitTypeDef GPIO_InitStruct =
+	{ 0 };
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOH_CLK_ENABLE();
@@ -479,11 +515,13 @@ static void MX_GPIO_Init(void) {
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void) {
+void Error_Handler(void)
+{
 	/* USER CODE BEGIN Error_Handler_Debug */
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
-	while (1) {
+	while (1)
+	{
 	}
 	/* USER CODE END Error_Handler_Debug */
 }
