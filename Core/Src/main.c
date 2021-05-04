@@ -130,12 +130,16 @@ int main(void)
 	uint32_t x = -99;
 	int rpm = 0;
 
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 	while(CDCrx[0] != 'i')
 	{
 		CDC_Receive_FS(CDCrx, &x);
 		HAL_Delay(10);
 	}
 	CDC_Transmit_FS(initTxPtr, 18);
+
+	//status LED
+	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 	//init successful
 
 	/* USER CODE END 2 */
@@ -155,20 +159,23 @@ int main(void)
 		{
 			if (CDCrx[1] == '3')
 			{
-				if (spindleFWD(&huart3))
+
+				while(!spindleFWD(&huart3))
 				{
-					HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+					HAL_Delay(10);
 				}
+
 				HAL_Delay(10);
 				CDC_Transmit_FS(getCheck(), 8);
 			}
 			else if (CDCrx[1] == '5')
 			{
-				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-				spindleOff(&huart3);
+				while(!spindleOff(&huart3))
+				{
+					HAL_Delay(10);
+				}
 				HAL_Delay(10);
 				CDC_Transmit_FS(getCheck(), 8);
-				//CDC_Transmit_FS(offStat, 3);
 			}
 
 		}
@@ -193,6 +200,8 @@ int main(void)
 		CDCrx[0] = 'a';
 
 	}
+
+
 	/* USER CODE END 3 */
 }
 

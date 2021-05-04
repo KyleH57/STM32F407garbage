@@ -48,6 +48,8 @@ void appendCRC8()
 
 //TODO
 //Check to see if we need to receive 10 bytes or not
+
+//returns 1 if success, 0 if fail
 int checkEcho8(UART_HandleTypeDef *huart)
 {
 	HAL_UART_Receive(huart, check, 8, 50);
@@ -90,6 +92,7 @@ int readCurrent10X(UART_HandleTypeDef *huart)
 	return curData;
 }
 
+//sends message to turn on spindle, returns 1 if success, 0 if failed
 int spindleFWD(UART_HandleTypeDef *huart)
 {
 
