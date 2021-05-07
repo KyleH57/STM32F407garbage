@@ -116,8 +116,8 @@ int main(void)
 	const uint8_t offStat[3] =
 	{ 'M', '5', '\n' };
 
-	char initTx[] = "11111111111111111111";//twenty 1s
-	uint8_t* initTxPtr = &initTx;
+	char initTx[] = "11111111111111111111"; //twenty 1s
+	uint8_t *initTxPtr = &initTx;
 
 	uint8_t CDCtx[8] =
 	{ 'A', '2', '3', '4', '5', '6', '7', '\n' };
@@ -131,7 +131,7 @@ int main(void)
 	int rpm = 0;
 
 	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-	while(CDCrx[0] != 'i')
+	while (CDCrx[0] != 'i')
 	{
 		CDC_Receive_FS(CDCrx, &x);
 		HAL_Delay(10);
@@ -139,7 +139,7 @@ int main(void)
 	CDC_Transmit_FS(initTxPtr, 18);
 
 	//status LED
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+
 	//init successful
 
 	/* USER CODE END 2 */
@@ -154,28 +154,38 @@ int main(void)
 
 		CDC_Receive_FS(CDCrx, &x);
 
-		HAL_Delay(100);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+		HAL_Delay(200);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+		HAL_Delay(200);
+
 		if (CDCrx[0] == 'M')
 		{
 			if (CDCrx[1] == '3')
 			{
 
-				while(!spindleFWD(&huart3))
-				{
-					HAL_Delay(10);
-				}
+				spindleFWD(&huart3);
+//				while (!spindleFWD(&huart3))
+//				{
+//					HAL_Delay(10);
+//				}
 
 				HAL_Delay(10);
-				CDC_Transmit_FS(getCheck(), 8);
+
+				//send message from VFD?
+				//CDC_Transmit_FS(getCheck(), 8);
 			}
 			else if (CDCrx[1] == '5')
 			{
-				while(!spindleOff(&huart3))
-				{
-					HAL_Delay(10);
-				}
-				HAL_Delay(10);
-				CDC_Transmit_FS(getCheck(), 8);
+				spindleOff(&huart3);
+//				while (!spindleOff(&huart3))
+//				{
+//					HAL_Delay(10);
+//				}
+//				HAL_Delay(10);
+
+				//send message from VFD?
+				//CDC_Transmit_FS(getCheck(), 8);
 			}
 
 		}
@@ -189,7 +199,17 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'C')
 		{
-			int spindleCurrent = readCurrent10X(&huart3);
+			//int spindleCurrent = readCurrent10X(&huart3);
+
+		}
+		else if (CDCrx[0] == 'R')
+		{
+			//int16_t spindleRPM = readRPM(&huart3);
+
+			uint16_t spindleRPM = readRPM(&huart3);
+			sprintf(CDCtx,"%05d",spindleRPM);
+
+			CDC_Transmit_FS(CDCtx, 5);
 
 		}
 		else
@@ -200,7 +220,6 @@ int main(void)
 		CDCrx[0] = 'a';
 
 	}
-
 
 	/* USER CODE END 3 */
 }

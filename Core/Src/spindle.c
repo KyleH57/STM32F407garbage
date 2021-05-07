@@ -13,7 +13,7 @@
 uint8_t wrMsg[] =
 { 0x01, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 };
 
-uint8_t check[] =
+uint8_t rx485[] =
 { 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A' }; //12 bytes
 
 void sendData8(UART_HandleTypeDef *huart)
@@ -52,17 +52,18 @@ void appendCRC8()
 //returns 1 if success, 0 if fail
 int checkEcho8(UART_HandleTypeDef *huart)
 {
-	HAL_UART_Receive(huart, check, 8, 50);
+	HAL_UART_Receive(huart, rx485, 8, 50);
 	for (int i = 0; i < 8; i++)
 	{
-		if (wrMsg[i] != check[i])
+		if (wrMsg[i] != rx485[i])
 		{
 			return 0;
 		}
 	}
 	return 1;
 }
-//TODO
+
+//TODO add CDC check
 int readCurrent10X(UART_HandleTypeDef *huart)
 {
 
@@ -77,20 +78,124 @@ int readCurrent10X(UART_HandleTypeDef *huart)
 	wrMsg[6] = 0x00;
 	wrMsg[7] = 0x00;
 
-	appendCRC8(wrMsg);
+	appendCRC8();
 
-	sendData8(wrMsg);
+	sendData8(huart);
 
-	uint8_t byteBuffer[8];
+	HAL_UART_Receive(huart, rx485, 7, 50);
 
-	uint16_t curData = byteBuffer[3];
+	int16_t cData = rx485[3] & 0xFF00;
 
-	curData <<= 8;
+	cData = rx485[4] & 0xFF;
 
-	curData |= byteBuffer[4];
-
-	return curData;
+	return cData;
 }
+
+////TODO add CRC check
+//int readRPM(UART_HandleTypeDef *huart)
+//{
+//
+//	wrMsg[0] = 0x01;
+//	wrMsg[1] = 0x03;
+//	wrMsg[2] = 0xD0;
+//	wrMsg[3] = 0x03;
+//	wrMsg[4] = 0x00;
+//	wrMsg[5] = 0x01;
+//
+//	//overwritten by append CRC
+//	wrMsg[6] = 0x00;
+//	wrMsg[7] = 0x00;
+//
+//	appendCRC8();
+//
+//	sendData8(huart);
+//
+//	HAL_UART_Receive(huart, rx485, 7, 50);
+//
+//	int16_t rpmData = (rx485[3] << 8) | rx485[4];
+//
+//	int16_t *rpmData2 = (int16_t *)(rx485[3]);
+//
+//	return *rpmData2;
+//
+//	//return rpmData;
+//}
+
+
+uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
+{
+	uint16_t *data;
+
+	wrMsg[0] = 0x01;
+	wrMsg[1] = 0x03;
+	wrMsg[2] = 0xD0;
+	wrMsg[3] = statusID;
+	wrMsg[4] = 0x00;
+	wrMsg[5] = 0x01;
+
+	//overwritten by append CRC
+	wrMsg[6] = 0x00;
+	wrMsg[7] = 0x00;
+
+	appendCRC8();
+
+	sendData8(huart);
+
+	HAL_UART_Receive(huart, rx485, 7, 50);
+
+	*data = (uint16_t *)(rx485[3]);
+
+	return *data;
+
+}   //end of rdStatusValue()
+
+
+#define VFD_PARAM_CODE_OUTPUT_FREQ   0x00
+#define VFD_PARAM_CODE_RPM   0x03
+
+
+uint16_t readRPM(UART_HandleTypeDef *huart)
+{
+	uint16_t data;
+
+   data = rdStatusValue(huart, VFD_PARAM_CODE_RPM);
+
+   return data;
+}
+
+
+
+
+
+
+//int readFreq(UART_HandleTypeDef *huart)
+//{
+//
+//	wrMsg[0] = 0x01;
+//	wrMsg[1] = 0x03;
+//	wrMsg[2] = 0xD0;
+//	wrMsg[3] = 0x00;
+//	wrMsg[4] = 0x00;
+//	wrMsg[5] = 0x01;
+//
+//	//overwritten by append CRC
+//	wrMsg[6] = 0x00;
+//	wrMsg[7] = 0x00;
+//
+//	appendCRC8();
+//
+//	sendData8(huart);
+//
+//	HAL_UART_Receive(huart, rx485, 7, 50);
+//
+//	int16_t freqData = rx485[3];
+//
+//	freqData <<= 8;
+//
+//	freqData = freqData | rx485[4];
+//
+//	return freqData;
+//}
 
 //sends message to turn on spindle, returns 1 if success, 0 if failed
 int spindleFWD(UART_HandleTypeDef *huart)
@@ -175,7 +280,7 @@ unsigned int crc_chk_value(uint8_t *data_value, uint8_t length)
 
 uint8_t* getCheck()
 {
-	return check;
+	return rx485;
 }
 
 uint8_t* getWr()

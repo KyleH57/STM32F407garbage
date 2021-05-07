@@ -18,7 +18,13 @@ void appendCRC8();
 
 int checkEcho8();
 //TODO
-int readCurrent10X();
+int readCurrent10X(UART_HandleTypeDef *huart);
+
+uint16_t readRPM(UART_HandleTypeDef *huart);
+
+//int readFreq(UART_HandleTypeDef *huart);
+
+uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID);
 
 int spindleFWD();
 
