@@ -124,7 +124,7 @@ int readCurrent10X(UART_HandleTypeDef *huart)
 
 uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
 {
-	uint16_t *data;
+	uint16_t data;
 
 	wrMsg[0] = 0x01;
 	wrMsg[1] = 0x03;
@@ -143,9 +143,15 @@ uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
 
 	HAL_UART_Receive(huart, rx485, 7, 50);
 
-	*data = (uint16_t *)(rx485[3]);
+	data = rx485[4];
+	data <<= 8;
+	data |= rx485[5];
+	//*data = (uint16_t *)(rx485[3]);
 
-	return *data;
+	//return *data;
+
+
+	return data;
 
 }   //end of rdStatusValue()
 
@@ -158,9 +164,9 @@ uint16_t readRPM(UART_HandleTypeDef *huart)
 {
 	uint16_t data;
 
-   data = rdStatusValue(huart, VFD_PARAM_CODE_RPM);
+	data = rdStatusValue(huart, VFD_PARAM_CODE_RPM);
 
-   return data;
+	return data;
 }
 
 

@@ -4,10 +4,10 @@ spindle.c:35:6:appendCRC8	16	static
 spindle.c:53:5:checkEcho8	24	static
 spindle.c:67:5:readCurrent10X	24	static
 spindle.c:125:10:rdStatusValue	24	static
-spindle.c:157:10:readRPM	24	static
-spindle.c:201:5:spindleFWD	16	static
-spindle.c:222:5:spindleOff	16	static
-spindle.c:243:6:setFreq	16	static
-spindle.c:263:14:crc_chk_value	24	static
-spindle.c:281:10:getCheck	4	static
-spindle.c:286:10:getWr	4	static
+spindle.c:163:10:readRPM	24	static
+spindle.c:207:5:spindleFWD	16	static
+spindle.c:228:5:spindleOff	16	static
+spindle.c:249:6:setFreq	16	static
+spindle.c:269:14:crc_chk_value	24	static
+spindle.c:287:10:getCheck	4	static
+spindle.c:292:10:getWr	4	static

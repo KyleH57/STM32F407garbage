@@ -130,7 +130,7 @@ int main(void)
 	uint32_t x = -99;
 	int rpm = 0;
 
-	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+	//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 	while (CDCrx[0] != 'i')
 	{
 		CDC_Receive_FS(CDCrx, &x);
@@ -139,6 +139,7 @@ int main(void)
 	CDC_Transmit_FS(initTxPtr, 18);
 
 	//status LED
+	//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 
 	//init successful
 
@@ -207,10 +208,10 @@ int main(void)
 			//int16_t spindleRPM = readRPM(&huart3);
 
 			uint16_t spindleRPM = readRPM(&huart3);
-			sprintf(CDCtx,"%05d",spindleRPM);
+			sprintf(CDCtx,"R%05d",spindleRPM);
 
 			CDC_Transmit_FS(CDCtx, 5);
-
+			//CDC_Transmit_FS(getCheck(), 8);
 		}
 		else
 		{
