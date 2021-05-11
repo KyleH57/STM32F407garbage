@@ -57,7 +57,7 @@ int checkEcho8(UART_HandleTypeDef *huart)
 	{
 		if (wrMsg[i] != rx485[i])
 		{
-			return 1;
+			return i;
 		}
 	}
 	return 0;

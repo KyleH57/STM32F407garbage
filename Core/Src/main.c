@@ -114,7 +114,8 @@ int main(void)
 	{ 'M', '3', '\n' };
 	const uint8_t offStat[3] =
 	{ 'M', '5', '\n' };
-
+	const uint8_t errorMsg[3] =
+	{ 'E', 'R', '\n' };
 	char initTx[] = "11111111111111111111"; //twenty 1s
 	uint8_t *initTxPtr = &initTx;
 
@@ -138,10 +139,6 @@ int main(void)
 	}
 	CDC_Transmit_FS(initTxPtr, 18);
 
-	//status LED
-	//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-
-	//init successful
 
 	/* USER CODE END 2 */
 
@@ -156,9 +153,9 @@ int main(void)
 		CDC_Receive_FS(CDCrx, &x);
 
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		HAL_Delay(20);
+		HAL_Delay(40);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		HAL_Delay(20);
+		HAL_Delay(40);
 
 		int msgFail = 0;
 
@@ -166,31 +163,31 @@ int main(void)
 		{
 			if (CDCrx[1] == '3')
 			{
-
-				while (spindleFWD(&huart3))
+				int temp133 = spindleFWD(&huart3);
+				if (temp133 > 0)
 				{
-					HAL_Delay(50);
-					msgFail++;
-					if (msgFail > 5)
-					{
-						break;
-					}
+					sprintf(errorMsg, "E%d\n", temp133);
+					CDC_Transmit_FS(errorMsg, 3);
 				}
+				else
+				{
+					CDC_Transmit_FS(onStat, 3);
+
+				}
+
 
 				HAL_Delay(10);
 
 			}
 			else if (CDCrx[1] == '5')
 			{
-				//spindleOff(&huart3);
-				while (spindleOff(&huart3))
+				if (spindleOff(&huart3) > 0) {
+
+					CDC_Transmit_FS(errorMsg, 3);
+				}
+				else
 				{
-					HAL_Delay(50);
-					msgFail++;
-					if (msgFail > 5)
-					{
-						break;
-					}
+					CDC_Transmit_FS(offStat, 3);
 				}
 				HAL_Delay(10);
 
@@ -229,7 +226,6 @@ int main(void)
 			sprintf(CDCtx, "R%05d,%03d", spindleRPM, spindleI);
 
 			CDC_Transmit_FS(CDCtx, 5);
-			//CDC_Transmit_FS(getCheck(), 8);
 		}
 		else
 		{
