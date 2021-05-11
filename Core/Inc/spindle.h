@@ -22,6 +22,8 @@ int readCurrent10X(UART_HandleTypeDef *huart);
 
 uint16_t readRPM(UART_HandleTypeDef *huart);
 
+uint16_t readI(UART_HandleTypeDef *huart);
+
 //int readFreq(UART_HandleTypeDef *huart);
 
 uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID);
@@ -30,7 +32,7 @@ int spindleFWD();
 
 int spindleOff();
 
-void setFreq(uint16_t freq, UART_HandleTypeDef *huart);
+int setFreq(uint16_t freq, UART_HandleTypeDef *huart);
 
 unsigned int crc_chk_value(uint8_t *data_value, uint8_t length);
 

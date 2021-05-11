@@ -78,7 +78,6 @@ static void MX_USART3_UART_Init(void);
  */
 int main(void)
 {
-
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
@@ -133,6 +132,7 @@ int main(void)
 	//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 	while (CDCrx[0] != 'i')
 	{
+		//if this fails to build, revert usbd_cdc_if.h and .c from github
 		CDC_Receive_FS(CDCrx, &x);
 		HAL_Delay(10);
 	}
@@ -156,37 +156,44 @@ int main(void)
 		CDC_Receive_FS(CDCrx, &x);
 
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
-		HAL_Delay(200);
+		HAL_Delay(20);
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
-		HAL_Delay(200);
+		HAL_Delay(20);
+
+		int msgFail = 0;
 
 		if (CDCrx[0] == 'M')
 		{
 			if (CDCrx[1] == '3')
 			{
 
-				spindleFWD(&huart3);
-//				while (!spindleFWD(&huart3))
-//				{
-//					HAL_Delay(10);
-//				}
+				while (spindleFWD(&huart3))
+				{
+					HAL_Delay(50);
+					msgFail++;
+					if (msgFail > 5)
+					{
+						break;
+					}
+				}
 
 				HAL_Delay(10);
 
-				//send message from VFD?
-				//CDC_Transmit_FS(getCheck(), 8);
 			}
 			else if (CDCrx[1] == '5')
 			{
-				spindleOff(&huart3);
-//				while (!spindleOff(&huart3))
-//				{
-//					HAL_Delay(10);
-//				}
-//				HAL_Delay(10);
+				//spindleOff(&huart3);
+				while (spindleOff(&huart3))
+				{
+					HAL_Delay(50);
+					msgFail++;
+					if (msgFail > 5)
+					{
+						break;
+					}
+				}
+				HAL_Delay(10);
 
-				//send message from VFD?
-				//CDC_Transmit_FS(getCheck(), 8);
 			}
 
 		}
@@ -196,19 +203,30 @@ int main(void)
 			CDCrx[7] = NULL;
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1) / 3;
+
+			while (setFreq(rpm, &huart3))
+			{
+				HAL_Delay(50);
+				msgFail++;
+				if (msgFail > 5)
+				{
+					break;
+				}
+			}
 			setFreq(rpm, &huart3);
 		}
 		else if (CDCrx[0] == 'C')
 		{
 			//int spindleCurrent = readCurrent10X(&huart3);
-
 		}
 		else if (CDCrx[0] == 'R')
 		{
-			//int16_t spindleRPM = readRPM(&huart3);
+			uint16_t spindleI = readI(&huart3);
 
 			uint16_t spindleRPM = readRPM(&huart3);
-			sprintf(CDCtx,"R%05d",spindleRPM);
+
+
+			sprintf(CDCtx, "R%05d,%03d", spindleRPM, spindleI);
 
 			CDC_Transmit_FS(CDCtx, 5);
 			//CDC_Transmit_FS(getCheck(), 8);
@@ -457,12 +475,11 @@ static void MX_USART3_UART_Init(void)
 
 	/* USER CODE BEGIN USART3_Init 0 */
 
-	/* USER CODE END   USART3_Init 0 */
+	/* USER CODE END USART3_Init 0 */
 
 	/* USER CODE BEGIN USART3_Init 1 */
 
-	/* USER CODE END   USART3_Init 1 */
-
+	/* USER CODE END USART3_Init 1 */
 	huart3.Instance = USART3;
 	huart3.Init.BaudRate = 9600;
 	huart3.Init.WordLength = UART_WORDLENGTH_8B;
@@ -471,15 +488,13 @@ static void MX_USART3_UART_Init(void)
 	huart3.Init.Mode = UART_MODE_TX_RX;
 	huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-
 	if (HAL_UART_Init(&huart3) != HAL_OK)
 	{
 		Error_Handler();
 	}
-
 	/* USER CODE BEGIN USART3_Init 2 */
 
-	/* USER CODE END   USART3_Init 2 */
+	/* USER CODE END USART3_Init 2 */
 
 }
 
