@@ -18,19 +18,24 @@ uint8_t rx485[] =
 
 void sendData8(UART_HandleTypeDef *huart)
 {
+
+	while(HAL_UART_Receive(huart, rx485, 1, 1) != HAL_TIMEOUT)
+	{
+		//dump serial rx buffer of any leftover/unexpected data
+	}
+
+
+	//VFD runs at 9600 baud or 1.2KB/s --- 8 bytes takes ~10ms
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 1);
 	HAL_Delay(5);
-	//blocking transmit 10ms timeout
-	HAL_UART_Transmit(huart, wrMsg, 8, 10);
-	HAL_Delay(5);
+
+	//blocking transmit 15ms timeout
+	HAL_UART_Transmit(huart, wrMsg, 8, 15);
+	//HAL_Delay(5);
 	HAL_GPIO_WritePin(RS485EN_GPIO_Port, RS485EN_Pin, 0);
 
 }
 
-void clearSer()
-{
-	//TODO
-}
 
 void appendCRC8()
 {
@@ -121,10 +126,9 @@ int readCurrent10X(UART_HandleTypeDef *huart)
 //	//return rpmData;
 //}
 
-
-uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
+//statCode 1 = CRC check failed
+int rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID, uint16_t *data)
 {
-	uint16_t data;
 
 	wrMsg[0] = 0x01;
 	wrMsg[1] = 0x03;
@@ -139,19 +143,31 @@ uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
 
 	appendCRC8();
 
+
 	sendData8(huart);
 
-	HAL_UART_Receive(huart, rx485, 7, 50);
+	//TODO check for rx errors
+	//TODO dump buffer
+	HAL_UART_Receive(huart, rx485, 7, 200);
 
-	data = rx485[4];
-	data <<= 8;
-	data |= rx485[5];
-	//*data = (uint16_t *)(rx485[3]);
+	uint16_t rxCRC = crc_chk_value(rx485, 5);
 
-	//return *data;
+	uint16_t packetCRC = rx485[6];
+	packetCRC <<= 8;
+	packetCRC |= rx485[5];
+
+	if (packetCRC != rxCRC)
+	{
+		return 1;
+	}
 
 
-	return data;
+	*data = rx485[3];
+	*data <<= 8;
+	*data |= rx485[4];
+
+
+	return 0;
 
 }   //end of rdStatusValue()
 
@@ -161,23 +177,21 @@ uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID)
 #define VFD_PARAM_CODE_RPM   0x03
 
 
-uint16_t readRPM(UART_HandleTypeDef *huart)
+int readRPM(UART_HandleTypeDef *huart, uint16_t *data)
 {
-	uint16_t data;
 
-	data = rdStatusValue(huart, VFD_PARAM_CODE_RPM);
+	int statCode = rdStatusValue(huart, VFD_PARAM_CODE_RPM, data);
 
-	return data;
+	return statCode;
 }
 
 
-uint16_t readI(UART_HandleTypeDef *huart)
+int readI(UART_HandleTypeDef *huart, uint16_t *data)
 {
-	uint16_t data;
 
-	data = rdStatusValue(huart, VFD_PARAM_CODE_OUTPUT_I);
+	int statCode = rdStatusValue(huart, VFD_PARAM_CODE_OUTPUT_I, data);
 
-	return data;
+	return statCode;
 }
 
 

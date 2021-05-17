@@ -119,7 +119,7 @@ int main(void)
 	char initTx[] = "11111111111111111111"; //twenty 1s
 	uint8_t *initTxPtr = &initTx;
 
-	uint8_t CDCtx[8] =
+	uint8_t CDCtx[50] =
 	{ 'A', '2', '3', '4', '5', '6', '7', '\n' };
 	uint8_t CDCrx[100];
 
@@ -218,14 +218,32 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'R')
 		{
-			uint16_t spindleI = readI(&huart3);
 
-			uint16_t spindleRPM = readRPM(&huart3);
+			uint16_t spindleI = 0;
+
+			if(readI(&huart3,&spindleI))
+			{
+				//crc check failed
+				spindleI = 999;
+			}
+
+			//wait 15ms to give time between reads
+			HAL_Delay(15);
 
 
-			sprintf(CDCtx, "R%05d,%03d", spindleRPM, spindleI);
+			uint16_t spindleRPM = 0;
 
-			CDC_Transmit_FS(CDCtx, 5);
+			if(readRPM(&huart3, &spindleRPM))
+			{
+				//crc check failed
+				spindleRPM = 44444;
+			}
+
+			//11 bytes long
+			sprintf(CDCtx, "R%05d,%03d\n", spindleRPM, spindleI);
+
+			CDC_Transmit_FS(CDCtx, 11);
+			//CDC_Transmit_FS(getCheck(), 8);
 		}
 		else
 		{

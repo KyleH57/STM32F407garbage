@@ -12,7 +12,6 @@
 
 void sendData8(UART_HandleTypeDef *huart);
 
-void clearSer();
 
 void appendCRC8();
 
@@ -20,13 +19,13 @@ int checkEcho8();
 //TODO
 int readCurrent10X(UART_HandleTypeDef *huart);
 
-uint16_t readRPM(UART_HandleTypeDef *huart);
+int readRPM(UART_HandleTypeDef *huart, uint16_t *data);
 
-uint16_t readI(UART_HandleTypeDef *huart);
+int readI(UART_HandleTypeDef *huart, uint16_t *data);
 
 //int readFreq(UART_HandleTypeDef *huart);
 
-uint16_t rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID);
+int rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID, uint16_t *data);
 
 int spindleFWD();
 
