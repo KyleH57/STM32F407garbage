@@ -114,6 +114,8 @@ int main(void)
 	{ 'M', '3', '\n' };
 	const uint8_t offStat[3] =
 	{ 'M', '5', '\n' };
+	const uint8_t ssStat[3] =
+	{ 'S', 'S', '\n' };
 	const uint8_t errorMsg[3] =
 	{ 'E', 'R', '\n' };
 	char initTx[] = "11111111111111111111"; //twenty 1s
@@ -138,7 +140,6 @@ int main(void)
 		HAL_Delay(10);
 	}
 	CDC_Transmit_FS(initTxPtr, 18);
-
 
 	/* USER CODE END 2 */
 
@@ -175,13 +176,13 @@ int main(void)
 
 				}
 
-
 				HAL_Delay(10);
 
 			}
 			else if (CDCrx[1] == '5')
 			{
-				if (spindleOff(&huart3) > 0) {
+				if (spindleOff(&huart3) > 0)
+				{
 
 					CDC_Transmit_FS(errorMsg, 3);
 				}
@@ -201,43 +202,30 @@ int main(void)
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1) / 3;
 
-			while (setFreq(rpm, &huart3))
+			//if message fails, send error message
+			if (setFreq(rpm, &huart3))
 			{
-				HAL_Delay(50);
-				msgFail++;
-				if (msgFail > 5)
-				{
-					break;
-				}
+				CDC_Transmit_FS(errorMsg, 3);
 			}
-			setFreq(rpm, &huart3);
-		}
-		else if (CDCrx[0] == 'C')
-		{
-			//int spindleCurrent = readCurrent10X(&huart3);
+			else
+			{
+				CDC_Transmit_FS(ssStat, 3);
+			}
+
 		}
 		else if (CDCrx[0] == 'R')
 		{
+			uint16_t spindleI = 44444;
+			uint16_t spindleRPM = 999;
 
-			uint16_t spindleI = 0;
-
-			if(readI(&huart3,&spindleI))
+			//if no errrors set vars
+			if(masterRd(&huart3) == 0)
 			{
-				//crc check failed
-				spindleI = 999;
+				spindleI = spindle0.current;
+				spindleRPM = spindle0.rpm;
 			}
 
-			//wait 15ms to give time between reads
-			HAL_Delay(15);
 
-
-			uint16_t spindleRPM = 0;
-
-			if(readRPM(&huart3, &spindleRPM))
-			{
-				//crc check failed
-				spindleRPM = 44444;
-			}
 
 			//11 bytes long
 			sprintf(CDCtx, "R%05d,%03d\n", spindleRPM, spindleI);
@@ -245,11 +233,8 @@ int main(void)
 			CDC_Transmit_FS(CDCtx, 11);
 			//CDC_Transmit_FS(getCheck(), 8);
 		}
-		else
-		{
 
-		}
-
+		//reset buffer
 		CDCrx[0] = 'a';
 
 	}

@@ -10,10 +10,18 @@
 
 #include "main.h"
 
+
+struct spindleData
+{
+	uint16_t current;
+	uint16_t voltage;
+	uint16_t rpm;
+} spindle0;
+
 uint8_t wrMsg[] =
 { 0x01, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 };
 
-uint8_t rx485[] =
+uint8_t rx485[50] =
 { 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A' }; //12 bytes
 
 void sendData8(UART_HandleTypeDef *huart)
@@ -54,7 +62,7 @@ void appendCRC8()
 //TODO
 //Check to see if we need to receive 10 bytes or not
 
-//returns 1 if success, 0 if fail
+//returns 1 if fail, 0 if success
 int checkEcho8(UART_HandleTypeDef *huart)
 {
 	HAL_UART_Receive(huart, rx485, 8, 50);
@@ -62,7 +70,7 @@ int checkEcho8(UART_HandleTypeDef *huart)
 	{
 		if (wrMsg[i] != rx485[i])
 		{
-			return i;
+			return 1;
 		}
 	}
 	return 0;
@@ -152,6 +160,7 @@ int rdStatusValue(UART_HandleTypeDef *huart, uint8_t statusID, uint16_t *data)
 
 	uint16_t rxCRC = crc_chk_value(rx485, 5);
 
+	//kinda sus  R shift LSB????
 	uint16_t packetCRC = rx485[6];
 	packetCRC <<= 8;
 	packetCRC |= rx485[5];
@@ -286,4 +295,57 @@ uint8_t* getWr()
 {
 	return wrMsg;
 }
+
+int masterRd(UART_HandleTypeDef *huart)
+{
+
+	wrMsg[0] = 0x01;
+	wrMsg[1] = 0x03;
+	wrMsg[2] = 0xD0;
+	wrMsg[3] = 0x01;
+	wrMsg[4] = 0x00;
+	wrMsg[5] = 0x03;
+
+	//overwritten by append CRC
+	wrMsg[6] = 0x00;
+	wrMsg[7] = 0x00;
+
+	appendCRC8();
+
+
+	sendData8(huart);
+
+	//TODO check for rx errors
+	if(HAL_UART_Receive(huart, rx485, 11, 200) == HAL_TIMEOUT)
+	{
+		return HAL_TIMEOUT;
+	}
+
+	uint16_t rxCRC = crc_chk_value(rx485, 9);
+
+	uint16_t packetCRC = rx485[9];
+	packetCRC <<= 8;
+	packetCRC |= rx485[10];
+
+	if (packetCRC != rxCRC)
+	{
+		//error code 4 - CRC failed
+		return 4;
+	}
+
+
+	spindle0.current = rx485[3];
+	spindle0.current <<= 8;
+	spindle0.current |= rx485[4];
+
+	spindle0.voltage = rx485[5];
+	spindle0.voltage <<= 8;
+	spindle0.voltage = rx485[6];
+
+	spindle0.rpm = rx485[7];
+	spindle0.rpm <<= 8;
+	spindle0.rpm = rx485[8];
+	return 0;
+
+}   //end of rdStatusValue()
 

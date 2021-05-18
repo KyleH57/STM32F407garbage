@@ -10,6 +10,8 @@
 
 #include "stm32f4xx_hal.h"
 
+struct spindleData;
+
 void sendData8(UART_HandleTypeDef *huart);
 
 
@@ -37,4 +39,7 @@ unsigned int crc_chk_value(uint8_t *data_value, uint8_t length);
 
 uint8_t* getCheck();
 uint8_t* getWr();
+
+int masterRd(UART_HandleTypeDef *huart);
+
 #endif /* INC_SPINDLE_H_ */
