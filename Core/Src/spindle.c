@@ -11,18 +11,20 @@
 #include "main.h"
 
 
-struct spindleData
-{
-	uint16_t current;
-	uint16_t voltage;
-	uint16_t rpm;
-} spindle0;
+
 
 uint8_t wrMsg[] =
 { 0x01, 0x06, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00 };
 
 uint8_t rx485[50] =
 { 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A', 'A' }; //12 bytes
+
+
+uint16_t altRPM = 0;
+uint16_t altI = 0;
+
+uint16_t packetCRC;
+uint16_t rxCRC;
 
 void sendData8(UART_HandleTypeDef *huart)
 {
@@ -296,7 +298,7 @@ uint8_t* getWr()
 	return wrMsg;
 }
 
-int masterRd(UART_HandleTypeDef *huart)
+int masterRd(UART_HandleTypeDef *huart, struct SpindleData *spindle0)
 {
 
 	wrMsg[0] = 0x01;
@@ -321,11 +323,13 @@ int masterRd(UART_HandleTypeDef *huart)
 		return HAL_TIMEOUT;
 	}
 
-	uint16_t rxCRC = crc_chk_value(rx485, 9);
+	rxCRC = crc_chk_value(rx485, 9);
 
-	uint16_t packetCRC = rx485[9];
+
+	//lmao its midnight and i realized endinenness is fuc ked
+	packetCRC = rx485[10];
 	packetCRC <<= 8;
-	packetCRC |= rx485[10];
+	packetCRC |= rx485[9];
 
 	if (packetCRC != rxCRC)
 	{
@@ -334,18 +338,45 @@ int masterRd(UART_HandleTypeDef *huart)
 	}
 
 
-	spindle0.current = rx485[3];
-	spindle0.current <<= 8;
-	spindle0.current |= rx485[4];
+//	spindle0->current = rx485[3];
+//	spindle0->current <<= 8;
+//	spindle0->current |= rx485[4];
 
-	spindle0.voltage = rx485[5];
-	spindle0.voltage <<= 8;
-	spindle0.voltage = rx485[6];
+	spindle0->current = (rx485[3] << 8) | rx485[4];
 
-	spindle0.rpm = rx485[7];
-	spindle0.rpm <<= 8;
-	spindle0.rpm = rx485[8];
+	//TODO delete whichever method doesnt work
+	altI = (rx485[3] << 8) | rx485[4];
+
+	spindle0->voltage = rx485[5];
+	spindle0->voltage <<= 8;
+	spindle0->voltage |= rx485[6];
+
+	spindle0->rpm = rx485[7];
+	spindle0->rpm <<= 8;
+	spindle0->rpm |= rx485[8];
+
+	//TODO delete whichever method doesnt work
+	altRPM = (rx485[7] << 8) | rx485[8];
 	return 0;
 
-}   //end of rdStatusValue()
+}
 
+
+uint16_t altGetI()
+{
+	return altI;
+}
+uint16_t altGetRPM()
+{
+	return altRPM;
+}
+
+uint16_t getPacketCRC()
+{
+	return packetCRC;
+}
+
+uint16_t getRxCRC()
+{
+	return rxCRC;
+}

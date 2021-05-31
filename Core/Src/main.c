@@ -24,6 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "spindle.h"
 
 /* USER CODE END Includes */
 
@@ -78,6 +79,8 @@ static void MX_USART3_UART_Init(void);
  */
 int main(void)
 {
+	int status = NO_ERROR;
+
 	/* USER CODE BEGIN 1 */
 
 	/* USER CODE END 1 */
@@ -108,24 +111,20 @@ int main(void)
 	MX_USB_DEVICE_Init();
 	/* USER CODE BEGIN 2 */
 
-	const uint8_t spStat[3] =
-	{ 'S', 'P', '\n' };
-	const uint8_t onStat[3] =
-	{ 'M', '3', '\n' };
-	const uint8_t offStat[3] =
-	{ 'M', '5', '\n' };
-	const uint8_t ssStat[3] =
-	{ 'S', 'S', '\n' };
-	const uint8_t errorMsg[3] =
-	{ 'E', 'R', '\n' };
+	uint8_t onStat[3] = { 'M', '3', '\n' };
+	uint8_t offStat[3] = { 'M', '5', '\n' };
+	uint8_t ssStat[3] = { 'S', 'S', '\n' };
+	uint8_t errorMsg[3] = { 'E', 'R', '\n' };
+
 	char initTx[] = "11111111111111111111"; //twenty 1s
-	uint8_t *initTxPtr = &initTx;
 
-	uint8_t CDCtx[50] =
-	{ 'A', '2', '3', '4', '5', '6', '7', '\n' };
-	uint8_t CDCrx[100];
+	char *initTxPtr = initTx;
 
-	CDCrx[0] == 'a';
+	uint8_t CDCtx[50] = { 'A', '2', '3', '4', '5', '6', '7', '\n' };
+
+	char CDCrx[100];
+
+	CDCrx[0] = 'a';
 
 	char *CDCrxPtr1 = &CDCrx[2];
 
@@ -136,10 +135,12 @@ int main(void)
 	while (CDCrx[0] != 'i')
 	{
 		//if this fails to build, revert usbd_cdc_if.h and .c from github
-		CDC_Receive_FS(CDCrx, &x);
+		CDC_Receive_FS((uint8_t*) CDCrx, &x);
 		HAL_Delay(10);
 	}
-	CDC_Transmit_FS(initTxPtr, 18);
+	CDC_Transmit_FS((uint8_t*) initTxPtr, 18);
+
+	struct SpindleData spindle0;
 
 	/* USER CODE END 2 */
 
@@ -158,22 +159,18 @@ int main(void)
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
 		HAL_Delay(40);
 
-		int msgFail = 0;
-
 		if (CDCrx[0] == 'M')
 		{
 			if (CDCrx[1] == '3')
 			{
-				int temp133 = spindleFWD(&huart3);
-				if (temp133 > 0)
+				status = spindleFWD(&huart3);
+				if (status != NO_ERROR)
 				{
-					sprintf(errorMsg, "E%d\n", temp133);
 					CDC_Transmit_FS(errorMsg, 3);
 				}
 				else
 				{
 					CDC_Transmit_FS(onStat, 3);
-
 				}
 
 				HAL_Delay(10);
@@ -198,7 +195,7 @@ int main(void)
 		else if (CDCrx[0] == 'S')
 		{
 			HAL_Delay(100);
-			CDCrx[7] = NULL;
+			CDCrx[7] = (uint8_t) NULL;
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1) / 3;
 
@@ -215,23 +212,51 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'R')
 		{
-			uint16_t spindleI = 44444;
-			uint16_t spindleRPM = 999;
+			uint16_t spindleI;
+			uint16_t spindleRPM;
 
 			//if no errrors set vars
-			if(masterRd(&huart3) == 0)
+
+			switch (masterRd(&huart3, &spindle0))
 			{
-				spindleI = spindle0.current;
-				spindleRPM = spindle0.rpm;
+			case 0:
+//				spindleI   = spindle0.current;
+//				spindleRPM = spindle0.rpm;
+
+				spindleI = altGetI();
+				spindleRPM = altGetRPM();
+				break;
+			case 3:
+				spindleI = 777;
+				spindleRPM = 44666;
+				break;
+			case 4:
+				//CRC failed
+				spindleI = 888;
+				spindleRPM = getRxCRC();
+				break;
+			default:
+				spindleI = 999;
+				spindleRPM = 44444;
+				break;
 			}
-
-
+//			if (masterRd(&huart3, &spindle0) == 0)
+//			{
+//				spindleI = spindle0.current;
+//				spindleRPM = spindle0.rpm;
+//			}
+//			else if (condition) {
+//
+//			}
 
 			//11 bytes long
 			sprintf(CDCtx, "R%05d,%03d\n", spindleRPM, spindleI);
 
 			CDC_Transmit_FS(CDCtx, 11);
-			//CDC_Transmit_FS(getCheck(), 8);
+
+			//delay needed since CDC tx is non blocking and OS is weird
+			HAL_Delay(20);
+			CDC_Transmit_FS(getCheck(), 11);
 		}
 
 		//reset buffer
@@ -248,10 +273,8 @@ int main(void)
  */
 void SystemClock_Config(void)
 {
-	RCC_OscInitTypeDef RCC_OscInitStruct =
-	{ 0 };
-	RCC_ClkInitTypeDef RCC_ClkInitStruct =
-	{ 0 };
+	RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+	RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
 
 	/** Configure the main internal regulator output voltage
 	 */
@@ -299,8 +322,7 @@ static void MX_ADC2_Init(void)
 
 	/* USER CODE END ADC2_Init 0 */
 
-	ADC_ChannelConfTypeDef sConfig =
-	{ 0 };
+	ADC_ChannelConfTypeDef sConfig = { 0 };
 
 	/* USER CODE BEGIN ADC2_Init 1 */
 
@@ -350,8 +372,7 @@ static void MX_ADC3_Init(void)
 
 	/* USER CODE END ADC3_Init 0 */
 
-	ADC_ChannelConfTypeDef sConfig =
-	{ 0 };
+	ADC_ChannelConfTypeDef sConfig = { 0 };
 
 	/* USER CODE BEGIN ADC3_Init 1 */
 
@@ -504,8 +525,7 @@ static void MX_USART3_UART_Init(void)
  */
 static void MX_GPIO_Init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStruct =
-	{ 0 };
+	GPIO_InitTypeDef GPIO_InitStruct = { 0 };
 
 	/* GPIO Ports Clock Enable */
 	__HAL_RCC_GPIOH_CLK_ENABLE();
