@@ -12,7 +12,7 @@ spindle.c:273:14:crc_chk_value	24	static
 spindle.c:291:10:getCheck	4	static
 spindle.c:296:10:getWr	4	static
 spindle.c:301:5:masterRd	16	static
-spindle.c:365:10:altGetI	4	static
-spindle.c:369:10:altGetRPM	4	static
-spindle.c:374:10:getPacketCRC	4	static
-spindle.c:379:10:getRxCRC	4	static
+spindle.c:364:10:altGetI	4	static
+spindle.c:368:10:altGetRPM	4	static
+spindle.c:373:10:getPacketCRC	4	static
+spindle.c:378:10:getRxCRC	4	static

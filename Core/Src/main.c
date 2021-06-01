@@ -114,6 +114,7 @@ int main(void)
 	uint8_t onStat[3] = { 'M', '3', '\n' };
 	uint8_t offStat[3] = { 'M', '5', '\n' };
 	uint8_t ssStat[3] = { 'S', 'S', '\n' };
+	uint8_t ack[3] = { 'A', 'C', '\n' };
 	uint8_t errorMsg[3] = { 'E', 'R', '\n' };
 
 	char initTx[] = "11111111111111111111"; //twenty 1s
@@ -163,6 +164,9 @@ int main(void)
 		{
 			if (CDCrx[1] == '3')
 			{
+				CDC_Transmit_FS(ack, 3);
+
+
 				status = spindleFWD(&huart3);
 				if (status != NO_ERROR)
 				{
@@ -178,6 +182,8 @@ int main(void)
 			}
 			else if (CDCrx[1] == '5')
 			{
+				CDC_Transmit_FS(ack, 3);
+
 				if (spindleOff(&huart3) > 0)
 				{
 
@@ -194,7 +200,8 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'S')
 		{
-			HAL_Delay(100);
+			CDC_Transmit_FS(ack, 3);
+
 			CDCrx[7] = (uint8_t) NULL;
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1) / 3;
@@ -212,6 +219,8 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'R')
 		{
+			CDC_Transmit_FS(ack, 3);
+
 			uint16_t spindleI;
 			uint16_t spindleRPM;
 
@@ -240,14 +249,6 @@ int main(void)
 				spindleRPM = 44444;
 				break;
 			}
-//			if (masterRd(&huart3, &spindle0) == 0)
-//			{
-//				spindleI = spindle0.current;
-//				spindleRPM = spindle0.rpm;
-//			}
-//			else if (condition) {
-//
-//			}
 
 			//11 bytes long
 			sprintf(CDCtx, "R%05d,%03d\n", spindleRPM, spindleI);
@@ -255,10 +256,13 @@ int main(void)
 			CDC_Transmit_FS(CDCtx, 11);
 
 			//delay needed since CDC tx is non blocking and OS is weird
-			HAL_Delay(20);
-			CDC_Transmit_FS(getCheck(), 11);
+			//HAL_Delay(20);
+			//CDC_Transmit_FS(getCheck(), 11);
 		}
-
+		else if (CDCrx[0] == 'q') {
+			//reboot
+			HAL_NVIC_SystemReset();
+		}
 		//reset buffer
 		CDCrx[0] = 'a';
 

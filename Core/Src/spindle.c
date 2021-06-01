@@ -327,9 +327,8 @@ int masterRd(UART_HandleTypeDef *huart, struct SpindleData *spindle0)
 
 
 	//lmao its midnight and i realized endinenness is fuc ked
-	packetCRC = rx485[10];
-	packetCRC <<= 8;
-	packetCRC |= rx485[9];
+	packetCRC = (rx485[10] << 8) | rx485[9];
+
 
 	if (packetCRC != rxCRC)
 	{
