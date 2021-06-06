@@ -236,6 +236,7 @@ int main(void)
 				spindleRPM = altGetRPM();
 				break;
 			case 3:
+				//HAL_TIMEOUT
 				spindleI = 777;
 				spindleRPM = 44666;
 				break;

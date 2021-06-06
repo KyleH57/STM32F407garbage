@@ -792,6 +792,7 @@ int main(void)
 				break;
  80007cc:	e01b      	b.n	8000806 <main+0x29e>
 			case 3:
+				//HAL_TIMEOUT
 				spindleI = 777;
  80007ce:	f240 3309 	movw	r3, #777	; 0x309
  80007d2:	f8a7 30e6 	strh.w	r3, [r7, #230]	; 0xe6
