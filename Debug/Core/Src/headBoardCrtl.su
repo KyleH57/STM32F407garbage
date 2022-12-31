@@ -1,0 +1,2 @@
+../Core/Src/headBoardCrtl.c:31:5:unlock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:36:5:lock_Z_axis	24	static
