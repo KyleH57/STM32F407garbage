@@ -25,6 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "spindle.h"
+#include "H100Spindle.h"
 
 /* USER CODE END Includes */
 
@@ -166,8 +167,9 @@ int main(void)
 			{
 				CDC_Transmit_FS(ack, 3);
 
+				//send the cmd to turn on the spindle
+				status = H100spindleFWD(&huart3);
 
-				status = spindleFWD(&huart3);
 				if (status != NO_ERROR)
 				{
 					CDC_Transmit_FS(errorMsg, 3);
@@ -184,9 +186,8 @@ int main(void)
 			{
 				CDC_Transmit_FS(ack, 3);
 
-				if (spindleOff(&huart3) > 0)
+				if (H100spindleOFF(&huart3) != NO_ERROR)
 				{
-
 					CDC_Transmit_FS(errorMsg, 3);
 				}
 				else
@@ -259,6 +260,19 @@ int main(void)
 			//delay needed since CDC tx is non blocking and OS is weird
 			//HAL_Delay(20);
 			//CDC_Transmit_FS(getCheck(), 11);
+		}
+		else if (CDCrx[0] == 'H') {
+			if (CDCrx[1] == '3') {
+				if (CDCrx[2] == '1') {
+					unlock_Z_axis(&huart3);
+				}
+				else if (CDCrx[2] == '0') {
+					lock_Z_axis(&huart3);
+				}
+
+			}
+
+
 		}
 		else if (CDCrx[0] == 'q') {
 			//reboot
@@ -506,7 +520,7 @@ static void MX_USART3_UART_Init(void)
 
 	/* USER CODE END USART3_Init 1 */
 	huart3.Instance = USART3;
-	huart3.Init.BaudRate = 9600;
+	huart3.Init.BaudRate = 19200;
 	huart3.Init.WordLength = UART_WORDLENGTH_8B;
 	huart3.Init.StopBits = UART_STOPBITS_1;
 	huart3.Init.Parity = UART_PARITY_NONE;
