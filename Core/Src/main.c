@@ -26,6 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include "spindle.h"
 #include "H100Spindle.h"
+#include "headboardCtrl.h"
 
 /* USER CODE END Includes */
 
@@ -154,6 +155,11 @@ int main(void)
 
 		/* USER CODE BEGIN 3 */
 
+//		for(int i = 0; i < 16; i++)
+//		{
+//			CDCrx[i] = 'a';
+//		}
+
 		CDC_Receive_FS(CDCrx, &x);
 
 		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
@@ -169,6 +175,9 @@ int main(void)
 
 				//send the cmd to turn on the spindle
 				status = H100spindleFWD(&huart3);
+
+				//turn on blue led in headstock to lock the drawbar
+				//set_headboard_solenoid_state(&huart3, 0x05, 1);
 
 				if (status != NO_ERROR)
 				{
@@ -186,9 +195,14 @@ int main(void)
 			{
 				CDC_Transmit_FS(ack, 3);
 
+
+
 				if (H100spindleOFF(&huart3) != NO_ERROR)
 				{
 					CDC_Transmit_FS(errorMsg, 3);
+
+					//turn off blue led in headstock to lock the drawbar
+					//set_headboard_solenoid_state(&huart3, 0x05, 0);
 				}
 				else
 				{
@@ -201,14 +215,21 @@ int main(void)
 		}
 		else if (CDCrx[0] == 'S')
 		{
-			CDC_Transmit_FS(ack, 3);
 
-			CDCrx[7] = (uint8_t) NULL;
+
+			//expected format is S024000 for 24000 rpm or S005000 for 5000rpm
+
+			//CDC_Transmit_FS(ack, 3);
+
+			CDCrx[7] = 'a';
 			//rounddown ok
-			rpm = atoi(CDCrxPtr1) / 3;
+			rpm = atoi(CDCrxPtr1);
+
+			//H100SetRPM(&huart3, rpm);
+			//CDC_Transmit_FS(CDCrx, 8);
 
 			//if message fails, send error message
-			if (setFreq(rpm, &huart3))
+			if (H100SetRPM(&huart3, rpm) != 0)
 			{
 				CDC_Transmit_FS(errorMsg, 3);
 			}
@@ -268,6 +289,15 @@ int main(void)
 				}
 				else if (CDCrx[2] == '0') {
 					lock_Z_axis(&huart3);
+				}
+
+			}
+			if (CDCrx[1] == '5') {
+				if(CDCrx[2] == '1'){
+					set_headboard_solenoid_state(&huart3, 0x05, 1);
+				}
+				else if(CDCrx[2] == '0'){
+					set_headboard_solenoid_state(&huart3, 0x05, 0);
 				}
 
 			}

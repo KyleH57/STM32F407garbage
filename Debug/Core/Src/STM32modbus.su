@@ -1,3 +1,4 @@
-../Core/Src/STM32modbus.c:21:10:modBusCRC	32	static
-../Core/Src/STM32modbus.c:45:5:modBusTransmit	128	static
-../Core/Src/STM32modbus.c:70:5:modBusWrSingle	56	static
+../Core/Src/STM32modbus.c:24:10:modBusCRC	32	static
+../Core/Src/STM32modbus.c:100:13:crc16	24	static
+../Core/Src/STM32modbus.c:121:5:modBusTransmit	128	static
+../Core/Src/STM32modbus.c:144:5:modBusWrSingle	56	static

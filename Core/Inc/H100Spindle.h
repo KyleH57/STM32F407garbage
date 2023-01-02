@@ -18,5 +18,8 @@
 
 int H100spindleFWD(UART_HandleTypeDef *uart);
 int H100spindleOFF(UART_HandleTypeDef *uart);
-int H100SetFreq(UART_HandleTypeDef *uart);
+
+int H100SetRPM(UART_HandleTypeDef *uart, int RPM);
+
+
 #endif /* INC_H100SPINDLE_H_ */

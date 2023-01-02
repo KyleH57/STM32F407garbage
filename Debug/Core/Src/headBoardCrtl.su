@@ -1,2 +1,3 @@
-../Core/Src/headBoardCrtl.c:31:5:unlock_Z_axis	24	static
-../Core/Src/headBoardCrtl.c:36:5:lock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:22:5:set_headboard_solenoid_state	24	static
+../Core/Src/headBoardCrtl.c:28:5:unlock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:33:5:lock_Z_axis	24	static

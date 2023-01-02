@@ -19,14 +19,11 @@ enum Stuff
 	Z_AXIS_SOLENOID = 0x03
 };
 
-//
-//int set_headboard_solenoid_state(UART_HandleTypeDef *uart, uint8_t registerAddr, uint8_t state)
-//{
-//
-//
-//	//return modBusWrSingle(uart, DEVICE_ADDRESS, registerAddr, state, TIMEOUT, NUM_RETRIES);
-//	reuturn 0;
-//}
+int set_headboard_solenoid_state(UART_HandleTypeDef *uart, uint16_t registerAddr, uint8_t state)
+{
+	modBusWrSingle(uart, DEVICE_ADDRESS, registerAddr, state, TIMEOUT, NUM_RETRIES);
+	return 0;
+}
 
 int unlock_Z_axis(UART_HandleTypeDef *uart)
 {
@@ -37,3 +34,4 @@ int lock_Z_axis(UART_HandleTypeDef *uart)
 {
 	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
+

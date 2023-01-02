@@ -1,3 +1,3 @@
-../Core/Src/H100Spindle.c:21:5:H100spindleFWD	24	static
-../Core/Src/H100Spindle.c:31:5:H100spindleOFF	24	static
-../Core/Src/H100Spindle.c:40:5:H100SetFreq	24	static
+../Core/Src/H100Spindle.c:18:5:H100spindleFWD	24	static
+../Core/Src/H100Spindle.c:28:5:H100spindleOFF	24	static
+../Core/Src/H100Spindle.c:37:5:H100SetRPM	32	static
