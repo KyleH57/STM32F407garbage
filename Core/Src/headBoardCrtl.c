@@ -16,7 +16,9 @@ enum Stuff
 	SOLENOID_OFF = 0x00,
 	NUM_RETRIES = 3,
 	TIMEOUT = 1000,
-	Z_AXIS_SOLENOID = 0x03
+	Z_AXIS_SOLENOID_REGISTER_ADDR = 0x03,
+	SPINDLE_DRAWBAR_REGISTER_ADDR = 0x00,
+	COOLANT_REGISTER_ADDR = 0x02
 };
 
 int set_headboard_solenoid_state(UART_HandleTypeDef *uart, uint16_t registerAddr, uint8_t state)
@@ -27,11 +29,32 @@ int set_headboard_solenoid_state(UART_HandleTypeDef *uart, uint16_t registerAddr
 
 int unlock_Z_axis(UART_HandleTypeDef *uart)
 {
-	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
 }
 
 int lock_Z_axis(UART_HandleTypeDef *uart)
 {
-	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
+
+void clamp_tool(UART_HandleTypeDef *uart)
+{
+	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+}
+
+void release_tool(UART_HandleTypeDef *uart)
+{
+	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+}
+
+void coolant_on(UART_HandleTypeDef *uart)
+{
+	modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+}
+
+void coolant_off(UART_HandleTypeDef *uart)
+{
+	modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+}
+
 
