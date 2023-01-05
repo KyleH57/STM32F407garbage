@@ -39,12 +39,12 @@ int lock_Z_axis(UART_HandleTypeDef *uart)
 
 void clamp_tool(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
 
 void release_tool(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
 }
 
 void coolant_on(UART_HandleTypeDef *uart)

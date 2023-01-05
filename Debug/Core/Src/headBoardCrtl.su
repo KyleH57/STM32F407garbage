@@ -1,3 +1,7 @@
-../Core/Src/headBoardCrtl.c:22:5:set_headboard_solenoid_state	24	static
-../Core/Src/headBoardCrtl.c:28:5:unlock_Z_axis	24	static
-../Core/Src/headBoardCrtl.c:33:5:lock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:24:5:set_headboard_solenoid_state	24	static
+../Core/Src/headBoardCrtl.c:30:5:unlock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:35:5:lock_Z_axis	24	static
+../Core/Src/headBoardCrtl.c:40:6:clamp_tool	24	static
+../Core/Src/headBoardCrtl.c:45:6:release_tool	24	static
+../Core/Src/headBoardCrtl.c:50:6:coolant_on	24	static
+../Core/Src/headBoardCrtl.c:55:6:coolant_off	24	static
