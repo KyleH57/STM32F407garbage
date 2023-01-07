@@ -222,9 +222,11 @@ int main(void)
 
 			//expected format is S024000 for 24000 rpm or S005000 for 5000rpm
 
-			//CDC_Transmit_FS(ack, 3);
+			//send acknowledged to let linux know we got the command
+			CDC_Transmit_FS(ack, 3);
 
 			CDCrx[7] = 'a';
+
 			//rounddown ok
 			rpm = atoi(CDCrxPtr1);
 
