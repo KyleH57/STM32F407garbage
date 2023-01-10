@@ -123,6 +123,8 @@ int main(void)
 	{ 'A', 'C', '\n' };
 	uint8_t errorMsg[3] =
 	{ 'E', 'R', '\n' };
+	uint8_t soStat[3] =
+	{ 'H', 'H', '\n' };
 
 	char initTx[] = "11111111111111111111"; //twenty 1s
 
@@ -139,6 +141,8 @@ int main(void)
 
 	uint32_t x = -99;
 	int rpm = 0;
+
+	int spindleRunning = 0;
 
 	//HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 	while (CDCrx[0] != 'i')
@@ -177,6 +181,7 @@ int main(void)
 		{
 			if (CDCrx[1] == '3')
 			{
+				//send message so LCNC knows the board got the command
 				CDC_Transmit_FS(ack, 3);
 
 				//send the cmd to turn on the spindle
@@ -192,6 +197,7 @@ int main(void)
 				else
 				{
 					CDC_Transmit_FS(onStat, 3);
+					spindleRunning = 1;
 				}
 
 				HAL_Delay(10);
@@ -211,6 +217,7 @@ int main(void)
 				else
 				{
 					CDC_Transmit_FS(offStat, 3);
+					spindleRunning = 0;
 				}
 				HAL_Delay(10);
 
@@ -287,6 +294,7 @@ int main(void)
 			//HAL_Delay(20);
 			//CDC_Transmit_FS(getCheck(), 11);
 		}
+		//this section does not transmit ACK
 		else if (CDCrx[0] == 'H')
 		{
 			//drawbar
@@ -294,37 +302,58 @@ int main(void)
 			{
 				if (CDCrx[2] == '1')
 				{
-					release_tool(&huart3);
+					if (release_tool(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+
+					}
+
 				}
 				else if (CDCrx[2] == '0')
 				{
-					clamp_tool(&huart3);
+					if (clamp_tool(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+					}
 				}
-
 			}
 			else if (CDCrx[1] == '2')
 			{
 				if (CDCrx[2] == '1')
 				{
-					coolant_on(&huart3);
+					if (coolant_on(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+					}
 				}
 				else if (CDCrx[2] == '0')
 				{
-					coolant_off(&huart3);
+					if (coolant_off(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+					}
 				}
 			}
 			else if (CDCrx[1] == '3')
 			{
 				if (CDCrx[2] == '1')
 				{
-					unlock_Z_axis(&huart3);
+					if (unlock_Z_axis(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+					}
 				}
 				else if (CDCrx[2] == '0')
 				{
-					lock_Z_axis(&huart3);
+					if (lock_Z_axis(&huart3) == NO_ERROR)
+					{
+						CDC_Transmit_FS(soStat, 3);
+					}
 				}
 
 			}
+			//turn on/off blue LED
+			//does not send ACK or HH
 			else if (CDCrx[1] == '5')
 			{
 				if (CDCrx[2] == '1')
@@ -344,8 +373,7 @@ int main(void)
 			//reboot
 			HAL_NVIC_SystemReset();
 		}
-		//reset buffer
-		CDCrx[0] = 'a';
+
 
 	}
 

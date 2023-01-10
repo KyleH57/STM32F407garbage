@@ -137,9 +137,8 @@ int modBusTransmit(UART_HandleTypeDef *uart, uint8_t *data, uint32_t timeout)
 }
 
 /*
- * test doc
- * uart*
- * deviceAddr
+ * returns 0 if no errors
+
  */
 int modBusWrSingle(UART_HandleTypeDef *uart, uint8_t deviceAddr,
 		uint16_t registerAddr, uint16_t data, uint32_t timeout,

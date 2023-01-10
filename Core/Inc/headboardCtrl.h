@@ -13,10 +13,10 @@ int set_headboard_solenoid_state(UART_HandleTypeDef *uart, uint16_t registerAddr
 int unlock_Z_axis(UART_HandleTypeDef *uart);
 int lock_Z_axis(UART_HandleTypeDef *uart);
 
-void clamp_tool(UART_HandleTypeDef *uart);
-void release_tool(UART_HandleTypeDef *uart);
+int clamp_tool(UART_HandleTypeDef *uart);
+int release_tool(UART_HandleTypeDef *uart);
 
-void coolant_on(UART_HandleTypeDef *uart);
-void coolant_off(UART_HandleTypeDef *uart);
+int coolant_on(UART_HandleTypeDef *uart);
+int coolant_off(UART_HandleTypeDef *uart);
 
 #endif /* INC_HEADBOARDCTRL_H_ */

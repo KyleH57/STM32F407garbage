@@ -9,13 +9,16 @@
 #include "STM32modbus.h"
 #include "headBoardCtrl.h"
 
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
+
 enum Stuff
 {
 	DEVICE_ADDRESS = 0x02,
 	SOLENOID_ON = 0x01,
 	SOLENOID_OFF = 0x00,
 	NUM_RETRIES = 3,
-	TIMEOUT = 1000,
+	TIMEOUT = 200,
 	Z_AXIS_SOLENOID_REGISTER_ADDR = 0x03,
 	SPINDLE_DRAWBAR_REGISTER_ADDR = 0x00,
 	COOLANT_REGISTER_ADDR = 0x02
@@ -37,24 +40,24 @@ int lock_Z_axis(UART_HandleTypeDef *uart)
 	return modBusWrSingle(uart, DEVICE_ADDRESS, Z_AXIS_SOLENOID_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
 
-void clamp_tool(UART_HandleTypeDef *uart)
+int clamp_tool(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
 
-void release_tool(UART_HandleTypeDef *uart)
+int release_tool(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, SPINDLE_DRAWBAR_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
 }
 
-void coolant_on(UART_HandleTypeDef *uart)
+int coolant_on(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_ON, TIMEOUT, NUM_RETRIES);
 }
 
-void coolant_off(UART_HandleTypeDef *uart)
+int coolant_off(UART_HandleTypeDef *uart)
 {
-	modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
+	return modBusWrSingle(uart, DEVICE_ADDRESS, COOLANT_REGISTER_ADDR, SOLENOID_OFF, TIMEOUT, NUM_RETRIES);
 }
 
 
