@@ -1177,7 +1177,7 @@ int H100SetRPM(UART_HandleTypeDef *uart, int RPM)
  8000e2a:	f7ff fdef 	bl	8000a0c <__aeabi_d2f>
  8000e2e:	4603      	mov	r3, r0
  8000e30:	60fb      	str	r3, [r7, #12]
-	uint16_t RPM_data= (int)(percentRPM * 100000); //convert to H100 format
+	uint16_t RPM_data = (int)(percentRPM * 10000); //convert to H100 format
  8000e32:	edd7 7a03 	vldr	s15, [r7, #12]
  8000e36:	ed9f 7a0e 	vldr	s14, [pc, #56]	; 8000e70 <H100SetRPM+0x68>
  8000e3a:	ee67 7a87 	vmul.f32	s15, s15, s14
@@ -1209,7 +1209,7 @@ int H100SetRPM(UART_HandleTypeDef *uart, int RPM)
  8000e68:	bd80      	pop	{r7, pc}
  8000e6a:	bf00      	nop
  8000e6c:	f3af 8000 	nop.w
- 8000e70:	47c35000 	.word	0x47c35000
+ 8000e70:	461c4000 	.word	0x461c4000
  8000e74:	00000000 	.word	0x00000000
  8000e78:	40d77000 	.word	0x40d77000
 
